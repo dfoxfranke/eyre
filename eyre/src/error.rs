@@ -604,7 +604,8 @@ where
 
 /// # Safety
 ///
-/// Requires layout of *e to match ErrorImpl<E>.
+/// Requires layout of *e to match ErrorImpl<E>. Ensures that returned pointee's layout
+/// matches `target`.
 unsafe fn object_downcast<E>(e: RefPtr<'_, ErrorImpl<()>>, target: TypeId) -> Option<NonNull<()>>
 where
     E: 'static,
@@ -621,7 +622,8 @@ where
 
 /// # Safety
 ///
-/// Requires layout of *e to match ErrorImpl<E>.
+/// Requires layout of *e to match ErrorImpl<E>. Ensures that returned pointee's layout
+/// matches `target`.
 unsafe fn object_downcast_mut<E>(
     e: MutPtr<'_, ErrorImpl<()>>,
     target: TypeId,
@@ -641,7 +643,8 @@ where
 
 /// # Safety
 ///
-/// Requires layout of *e to match ErrorImpl<ContextError<D, E>>.
+/// Requires layout of *e to match ErrorImpl<ContextError<D, E>>. Ensures that returned
+/// pointee's layout matches `target`.
 unsafe fn context_downcast<D, E>(
     e: RefPtr<'_, ErrorImpl<()>>,
     target: TypeId,
@@ -650,13 +653,16 @@ where
     D: 'static,
     E: 'static,
 {
+    let unerased = e.cast::<ErrorImpl<ContextError<D, E>>>();
     if TypeId::of::<D>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<D, E>>>();
+        // Safety: Layout of `*unerased` matches `ErrorImpl<ContextError<D, E>>`.
         let addr = unsafe { ptr::addr_of!((*unerased.ptr.as_ptr())._object.msg) };
+        // Safety: `addr` is not null, layout matches `D`.
         Some(unsafe { NonNull::new_unchecked(addr.cast_mut()).cast::<()>() })
     } else if TypeId::of::<E>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<D, E>>>();
+        // Safety: Layout of `*unerased` matches `ErrorImpl<ContextError<D, E>>`.
         let addr = unsafe { ptr::addr_of!((*unerased.ptr.as_ptr())._object.error) };
+        // Safety: `addr` is not null, layout matches `E`.
         Some(unsafe { NonNull::new_unchecked(addr.cast_mut()).cast::<()>() })
     } else {
         None
@@ -665,7 +671,8 @@ where
 
 /// # Safety
 ///
-/// Requires layout of *e to match ErrorImpl<ContextError<D, E>>.
+/// Requires layout of *e to match ErrorImpl<ContextError<D, E>>. Ensures that returned
+/// pointee's layout matches `target`.
 unsafe fn context_downcast_mut<D, E>(
     e: MutPtr<'_, ErrorImpl<()>>,
     target: TypeId,
@@ -674,13 +681,16 @@ where
     D: 'static,
     E: 'static,
 {
+    let unerased = e.cast::<ErrorImpl<ContextError<D, E>>>();
     if TypeId::of::<D>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<D, E>>>();
+        // Safety: Layout of `*unerased` matches `ErrorImpl<ContextError<D, E>>`.
         let addr = unsafe { ptr::addr_of_mut!((*unerased.ptr.as_ptr())._object.msg) };
+        // Safety: `addr` is not null, layout matches `D`.
         Some(unsafe { NonNull::new_unchecked(addr).cast::<()>() })
     } else if TypeId::of::<E>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<D, E>>>();
+        // Safety: Layout of `*unerased` matches `ErrorImpl<ContextError<D, E>>`.
         let addr = unsafe { ptr::addr_of_mut!((*unerased.ptr.as_ptr())._object.error) };
+        // Safety: `addr` is not null, layout matches `E`.
         Some(unsafe { NonNull::new_unchecked(addr).cast::<()>() })
     } else {
         None
@@ -712,7 +722,8 @@ where
 
 /// # Safety
 ///
-/// Requires layout of *e to match ErrorImpl<ContextError<D, Report>>.
+/// Requires layout of *e to match ErrorImpl<ContextError<D, Report>>. Ensures that returned pointee's
+/// layout matches `target`.
 unsafe fn context_chain_downcast<D>(
     e: RefPtr<'_, ErrorImpl<()>>,
     target: TypeId,
@@ -720,21 +731,24 @@ unsafe fn context_chain_downcast<D>(
 where
     D: 'static,
 {
+    let unerased = e.cast::<ErrorImpl<ContextError<D, Report>>>();
     if TypeId::of::<D>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<D, Report>>>();
+        // Safety: Layout of `*unerased` matches `ErrorImpl<ContextError<D, Report>>`.
         let addr = unsafe { ptr::addr_of!((*unerased.ptr.as_ptr())._object.msg) };
+        // Safety: `addr` is not not null, layout matches `D`.
         Some(unsafe { NonNull::new_unchecked(addr.cast_mut()).cast::<()>() })
     } else {
         // Recurse down the context chain per the inner error's vtable.
-        let unerased = unsafe { e.cast::<ErrorImpl<ContextError<D, Report>>>().as_ref() };
-        let source = &unerased._object.error;
+        // Safety: Layout of *unerased matches `ErrorImpl<ContextExrror<D, Report>>`.
+        let source = unsafe { &unerased.as_ref()._object.error };
         unsafe { (source.vtable().object_downcast)(source.inner.as_ref(), target) }
     }
 }
 
 /// # Safety
 ///
-/// Requires layout of *e to match ErrorImpl<ContextError<D, Report>>.
+/// Requires layout of *e to match ErrorImpl<ContextError<D, Report>>. Ensures that returned pointee's
+/// layout matches `target`.
 unsafe fn context_chain_downcast_mut<D>(
     e: MutPtr<'_, ErrorImpl<()>>,
     target: TypeId,
@@ -742,14 +756,14 @@ unsafe fn context_chain_downcast_mut<D>(
 where
     D: 'static,
 {
+    let unerased = e.cast::<ErrorImpl<ContextError<D, Report>>>();
     if TypeId::of::<D>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<D, Report>>>();
         let addr = unsafe { ptr::addr_of_mut!((*unerased.ptr.as_ptr())._object.msg) };
         Some(unsafe { NonNull::new_unchecked(addr).cast::<()>() })
     } else {
         // Recurse down the context chain per the inner error's vtable.
-        let unerased = unsafe { e.cast::<ErrorImpl<ContextError<D, Report>>>().into_mut() };
-        let source = &mut unerased._object.error;
+        // Safety: Layout of *unerased matches `ErrorImpl<ContextExrror<D, Report>>`.
+        let source = unsafe { &mut unerased.into_mut()._object.error };
         unsafe { (source.vtable().object_downcast_mut)(source.inner.as_mut(), target) }
     }
 }
