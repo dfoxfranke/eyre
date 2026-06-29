@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- next-header -->
 
-## [Unreleased] - ReleaseDate
+## [0.6.13] - 2025-06-29
+### Fixed
+- Unsoundness in `Report::downcast_mut` [by dfoxfranke](https://github.com/eyre-rs/eyre/pull/286)
+
+### New Contributors
+- @dfoxfranke made his first contribution in https://github.com/eyre-rs/eyre/pull/286
 
 ## [0.6.12] - 2024-01-31
 ### Fixed
@@ -78,7 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 <!-- next-url -->
-[Unreleased]: https://github.com/eyre-rs/eyre/compare/v0.6.11...HEAD
+[0.6.13]: https://github.com/eyre-rs/eyre/compare/f855046...eyre-v0.6.13
+[0.6.12]: https://github.com/eyre-rs/eyre/compare/v0.6.11...f855046
 [0.6.11]: https://github.com/eyre-rs/eyre/compare/v0.6.9...v0.6.11
 [0.6.9]:  https://github.com/eyre-rs/eyre/compare/v0.6.8...v0.6.9
 [0.6.8]:  https://github.com/eyre-rs/eyre/compare/v0.6.7...v0.6.8
